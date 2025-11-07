@@ -48,7 +48,7 @@ int main(){
   printf("Enter username: ");
   if(!fgets(name, BUFFER_SIZE, stdin)) exit(EXIT_FAILURE);
 
-  sendMessage(fd, REQUEST_STATUS | PASSWORD, name);
+  sendMessage(fd, REQUEST_STATUS | USERNAME, name);
   serverResponse(&msg); // Server response to username
 
   name[strcspn(name, "\n")] = 0;
