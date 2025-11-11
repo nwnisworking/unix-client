@@ -47,10 +47,7 @@ int main(){
   Message msg;
   char buffer[BUFFER_SIZE];
   char name[BUFFER_SIZE];
-  struct timeval timeout;
-
-  // This prevents blocking indefinitely on recv/send calls. 
-  timeout.tv_sec = 5;
+  struct timeval timeout = {5, 0};
 
   fd = clientSocket("127.0.0.1", SERVER_PORT);
 
@@ -60,15 +57,14 @@ int main(){
   }
 
   setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-  setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 
   printf("[Client]: Connected to the server\n\n");
   
   printf("Enter username: ");
   if(!fgets(name, BUFFER_SIZE, stdin)) exit(EXIT_FAILURE);
 
-  sendMessage(fd, REQ_OK | USERNAME, name);
-  response(&msg, RES_OK | USERNAME);
+  sendMessage(fd, REQ_OK | NAME, name);
+  response(&msg, RES_OK | NAME);
 
   name[strcspn(name, "\n")] = 0;
 
