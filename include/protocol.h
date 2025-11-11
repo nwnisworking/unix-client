@@ -23,7 +23,7 @@
 #define RES_ERR (RES_BIT | ERR_BIT)
 
 // Message types
-#define USERNAME 1
+#define NAME 1
 #define PASSWORD 2
 #define AUTH 3
 #define DATA 4
