@@ -1,5 +1,10 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef SOCKETSIGNAL_H
+#define SOCKETSIGNAL_H
+
+/**
+ * @file socketsignal.h
+ * @brief Provides functions for installing and resetting signal handlers for socket operations.
+ */
 
 #include <signal.h>
 #include <stdio.h>
@@ -10,7 +15,7 @@
 // Since the program may run as either server or client,
 // we use a single global file descriptor to manage the active connection.
 // By declaring it extern here, we can access it in socketsignal.c for signal handling.
-// This allows us to close the socket gracefully on termination signals and reduce the amount of close() function
+// This allows us to close the socket gracefully on termination signals.
 // calls.
 extern int fd;
 
@@ -24,4 +29,4 @@ void resetSignalHandler();
  */
 void installSignalHandler();
 
-#endif // UTILS_H
+#endif // SOCKETSIGNAL_H
