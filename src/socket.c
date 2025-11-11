@@ -1,5 +1,27 @@
 #include "socket.h"
 
+/**
+ * Receives the full message from the given file descriptor and populates the provided buffer.
+ * 
+ * @param fd The file descriptor to receive the message from.
+ * @param buffer The buffer to store the received data.
+ * @param size The size of the buffer.
+ * @param received_bytes Pointer to an integer to store the number of bytes received.
+ * @return The status code indicating the result of the operation.
+ */
+static int readAll(int fd, char* buffer, int size, ssize_t* received_bytes);
+
+/**
+ * Sends the full buffer to the given file descriptor.
+ * 
+ * @param fd The file descriptor to send the data to.
+ * @param buffer The buffer containing the data to send.
+ * @param size The size of the buffer.
+ * @param sent_bytes Pointer to an integer to store the number of bytes sent.
+ * @return The status code indicating the result of the operation.
+ */
+static int sendAll(int fd, const char* buffer, int size, ssize_t* sent_bytes);
+
 int serverSocket(uint16_t port){
   int fd = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in addr;
@@ -28,6 +50,7 @@ int clientSocket(const char* server_ip, uint16_t port){
 
   addr.sin_family = AF_INET;
   addr.sin_port = htons(port);
+  
   inet_pton(AF_INET, server_ip, &addr.sin_addr);
 
   if(connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) return -1;
@@ -35,75 +58,108 @@ int clientSocket(const char* server_ip, uint16_t port){
   return fd;
 }
 
-ssize_t sendMessage(int fd, uint8_t status, const char* data){
-  int data_len = strlen(data);
-  uint16_t net_length = htons(data_len);
+int sendMessage(int fd, uint8_t status, const char* data){
+  ssize_t data_len = data ? strlen(data) : 0;
 
   // Truncate data if it exceeds buffer size. 
   // This ensures we don't send more data than the receiver can handle.
-  if(data_len > BUFFER_SIZE){
-    data_len = BUFFER_SIZE; 
-  }
+  if(data_len > BUFFER_SIZE) data_len = BUFFER_SIZE;
 
+  // Ignore trailing newline if present
+  if(data_len > 0 && data[data_len - 1] == '\n') data_len--;
+
+  uint16_t net_length = htons(data_len);
   char msg_data[data_len + 3];
+  ssize_t sent_bytes = 0;
 
   // Construct the message: status (1 byte), length (2 bytes), data (n bytes)
   memcpy(&msg_data[0], &status, sizeof(uint8_t));
   memcpy(&msg_data[1], &net_length, sizeof(uint16_t));
-  memcpy(&msg_data[3], data, data_len);
-  
-  // Null-terminate the data portion of the message
-  if(msg_data[data_len + 3 - 1] == '\n')
-    msg_data[data_len + 3 - 1] = '\0';
 
-  return send(fd, msg_data, sizeof(msg_data), 0);
+  if(data_len > 0) memcpy(&msg_data[3], data, data_len);
+
+  if(sendAll(fd, msg_data, data_len + 3, &sent_bytes) != MSG_OK)
+    return MSG_ERROR;
+
+  if(sent_bytes != data_len + 3)
+    return MSG_ERROR;
+
+  return MSG_OK;
 }
 
-ssize_t recvMessage(int fd, Message* msg){
+int recvMessage(int fd, Message* msg){
   // NULL pointer check
   if(!msg) return -1;
 
   ssize_t received_bytes = 0;
   uint16_t data_len;
+  int status;
   char header[3];
 
-  // Clear the message structure in case the structure is being reused
+  // Clear the message structure if it contains any residual data
   memset(msg, 0, sizeof(Message)); 
 
-  // We want to prevent partial reads from happening, so we read the header first, then the data.
-  while(received_bytes < (ssize_t) sizeof(header)){
-    ssize_t bytes = recv(fd, header + received_bytes, sizeof(header) - received_bytes, 0);
-
-    if(bytes <= 0){
-      return -1; 
-    }
-
-    received_bytes += bytes;
-  }
+  // Receive the fixed-size header first (status + length)
+  if((status = readAll(fd, header, 3, &received_bytes)) != MSG_OK) return status;
 
   // Extract status and length from header
   memcpy(&msg->status, &header[0], sizeof(uint8_t));
   memcpy(&msg->length, &header[1], sizeof(uint16_t));
 
   data_len = ntohs(msg->length);
-  received_bytes = 0;
 
-  while(received_bytes < data_len){
-    ssize_t bytes = recv(fd, msg->data + received_bytes, data_len - received_bytes, 0);
+  // Read the message data based on the length specified in the header
+  if((status = readAll(fd, msg->data, data_len, &received_bytes)) != MSG_OK) return status;
 
-    if(bytes <= 0){
-      return -1;
-    }
-
-    received_bytes += bytes;
+  // Client might be sending data that does not match the declared length
+  if(received_bytes != data_len){
+    return MSG_MALFORMED;
   }
 
-  // Null-terminate the received data to make it a valid string
-  // In case the data is exactly BUFFER_SIZE, we ensure the last byte is null
+  // Null-terminate the received data.
   if(data_len < BUFFER_SIZE)
     msg->data[data_len] = '\0';
   else
     msg->data[BUFFER_SIZE - 1] = '\0';
     
-  return received_bytes;
+  return MSG_OK;
+}
+
+int readAll(int fd, char* buffer, int size, ssize_t* received_bytes){
+  *received_bytes = 0;
+
+  // Get the full data as defined by size
+  while(*received_bytes < size){
+    ssize_t bytes = recv(fd, buffer + *received_bytes, size - *received_bytes, 0);
+
+    if(bytes == 0){
+      return MSG_PEER_CLOSED;
+    }
+    else if(bytes < 0){
+      return MSG_ERROR;
+    }
+
+    // Increment the count of received bytes
+    *received_bytes += bytes;
+  }
+
+  return MSG_OK;
+}
+
+int sendAll(int fd, const char* buffer, int size, ssize_t* sent_bytes){
+  *sent_bytes = 0;
+
+  // Send the full data as defined by size
+  while(*sent_bytes < size){
+    ssize_t bytes = send(fd, buffer + *sent_bytes, size - *sent_bytes, 0);
+
+    if(bytes <= 0){
+      return MSG_ERROR;
+    }
+
+    // Increment the count of sent bytes
+    *sent_bytes += bytes;
+  }
+
+  return MSG_OK;
 }

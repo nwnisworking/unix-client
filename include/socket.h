@@ -1,25 +1,24 @@
+#ifndef SOCKET_H
+#define SOCKET_H
+
+/**
+ * @file socket.h
+ * @brief Provides functions for creating server and client sockets, sending and receiving messages.
+ */
+
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <stdio.h>
 
-// Default port number for server-client communication
-#define SERVER_PORT 9000
-
 // Maximum buffer size for message data
 #define BUFFER_SIZE 65535 
 
-// Status flags 
-#define REQUEST_STATUS 1 << 7
-#define RESPONSE_STATUS 1 << 6
-#define SUCCESS_STATUS 1 << 5
-#define ERROR_STATUS 1 << 4
-
-// Message types
-#define USERNAME 1
-#define PASSWORD 2
-#define DATA 3
-#define CLOSE 4
+// Message status codes
+#define MSG_OK 0
+#define MSG_PEER_CLOSED 1
+#define MSG_ERROR 2
+#define MSG_MALFORMED 3
 
 // Message structure for client/server communication.
 // This ensures both sides interpret the message consistently.
@@ -52,15 +51,17 @@ int clientSocket(const char* server_ip, uint16_t port);
  * @param fd The file descriptor to send the message to.
  * @param status The status byte of the message.
  * @param data The data to be sent in the message.
- * @return The number of bytes sent, or -1 on error.
+ * @return The status code indicating the result of the operation.
  */
-ssize_t sendMessage(int fd, uint8_t status, const char* data);
+int sendMessage(int fd, uint8_t status, const char* data);
 
 /**
  * Receives a message from the given file descriptor and populates the provided Message structure.
  * 
  * @param fd The file descriptor to receive the message from.
  * @param msg Pointer to the Message structure to populate with the received data.
- * @return The number of bytes received, or -1 on error.
+ * @return The status code indicating the result of the operation.
  */
-ssize_t recvMessage(int fd, Message* msg);
+int recvMessage(int fd, Message* msg);
+
+#endif // SOCKET_H
