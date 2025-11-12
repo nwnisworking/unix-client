@@ -1,12 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <signal.h>
-#include <fcntl.h>
 #include <sys/time.h>
 
 #include "socket.h"
@@ -47,7 +44,7 @@ int main(){
   Message msg;
   char buffer[BUFFER_SIZE];
   char name[BUFFER_SIZE];
-  struct timeval timeout = {5, 0};
+  struct timeval timeout = {15, 0};
 
   fd = clientSocket("127.0.0.1", SERVER_PORT);
 
