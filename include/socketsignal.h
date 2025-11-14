@@ -11,22 +11,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-// This variable is defined in main.c
-// Since the program may run as either server or client,
-// we use a single global file descriptor to manage the active connection.
-// By declaring it extern here, we can access it in socketsignal.c for signal handling.
-// This allows us to close the socket gracefully on termination signals.
-// calls.
-extern int fd;
-
-/**
- * Resets the signal handlers to their default behavior.
- */
-void resetSignalHandler();
-
 /**
  * Installs custom signal handlers for termination signals.
  */
-void installSignalHandler();
+void installSignalHandler(void* handler);
 
 #endif // SOCKETSIGNAL_H

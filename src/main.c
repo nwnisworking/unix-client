@@ -10,10 +10,7 @@
 #include "protocol.h"
 #include "socketsignal.h"
 
-// This is a global file descriptor for the socket 
-// which can either be a server or accepted client socket.
-// The purpose of this global variable is to allow signal handlers to close the socket gracefully.
-int fd = -1;
+static int fd = -1;
 
 /**
  * Cleanup function to be called at program exit.
@@ -30,6 +27,12 @@ void cleanup();
 void response(Message* msg, int expect_flags);
 
 /**
+ * Signal handler for termination signals.
+ */
+void signalHandler();
+
+
+/**
  * Checks if a specific flag is set in the status byte.
  * @param status The status byte to check.
  * @param flag The flag to check for.
@@ -39,7 +42,7 @@ int hasFlag(uint8_t status, uint8_t flag);
 
 int main(){
   atexit(cleanup);
-  installSignalHandler();
+  installSignalHandler(signalHandler);
 
   Message msg;
   char buffer[BUFFER_SIZE];
@@ -125,4 +128,15 @@ void response(Message* msg, int expect_flags){
 
 int hasFlag(uint8_t status, uint8_t flag){
   return (status & flag) == flag;
+}
+
+void signalHandler(){
+  printf("\nTermination signal received. Closing socket\n");
+
+  if(fd != -1){
+    close(fd);
+    fd = -1;
+  }
+
+  _exit(0);
 }
