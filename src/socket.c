@@ -33,6 +33,10 @@ int serverSocket(uint16_t port){
   addr.sin_addr.s_addr = INADDR_ANY;
   addr.sin_port = htons(port);
 
+  int opt = 1;
+  // Reuse the address to avoid "Address already in use" errors on restart
+  setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
   // Bind the socket to the specified port
   if(bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) return -1;
 
@@ -50,7 +54,6 @@ int clientSocket(const char* server_ip, uint16_t port){
 
   addr.sin_family = AF_INET;
   addr.sin_port = htons(port);
-  
   inet_pton(AF_INET, server_ip, &addr.sin_addr);
 
   if(connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) return -1;
@@ -128,7 +131,6 @@ int recvMessage(int fd, Message* msg){
 int readAll(int fd, char* buffer, int size, ssize_t* received_bytes){
   *received_bytes = 0;
 
-  // Get the full data as defined by size
   while(*received_bytes < size){
     ssize_t bytes = recv(fd, buffer + *received_bytes, size - *received_bytes, 0);
 
@@ -139,9 +141,9 @@ int readAll(int fd, char* buffer, int size, ssize_t* received_bytes){
       return MSG_ERROR;
     }
 
-    // Increment the count of received bytes
     *received_bytes += bytes;
   }
+
 
   return MSG_OK;
 }
@@ -149,7 +151,6 @@ int readAll(int fd, char* buffer, int size, ssize_t* received_bytes){
 int sendAll(int fd, const char* buffer, int size, ssize_t* sent_bytes){
   *sent_bytes = 0;
 
-  // Send the full data as defined by size
   while(*sent_bytes < size){
     ssize_t bytes = send(fd, buffer + *sent_bytes, size - *sent_bytes, 0);
 
@@ -157,7 +158,6 @@ int sendAll(int fd, const char* buffer, int size, ssize_t* sent_bytes){
       return MSG_ERROR;
     }
 
-    // Increment the count of sent bytes
     *sent_bytes += bytes;
   }
 
