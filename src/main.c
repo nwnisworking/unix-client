@@ -32,7 +32,7 @@ void response(Message* msg, int expect_flags);
  */
 void signalHandler();
 
-int main(){
+int main(int argc, char* argv[]){
   atexit(cleanup);
   installSignalHandler(signalHandler);
 
@@ -41,7 +41,14 @@ int main(){
   char name[BUFFER_SIZE];
   struct timeval timeout = {15, 0};
 
-  fd = clientSocket("127.0.0.1", SERVER_PORT);
+  if(argc == 2 && strcmp(argv[1], "--dev") == 0){
+    printf("[Client]: Running in development mode. Connecting to localhost\n");
+  }
+  else{
+    printf("[Client]: Connecting to server at %s:%d\n", SERVER_IP, SERVER_PORT);
+  }
+
+  fd = clientSocket(argv[1] && strcmp(argv[1], "--dev") == 0 ? "127.0.0.1" : SERVER_IP, SERVER_PORT);
 
   if(fd < 0){
     printf("[Client]: Unable to connect to the server\n");

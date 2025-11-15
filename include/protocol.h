@@ -7,6 +7,7 @@
  */
 
 #define SERVER_PORT 9000
+#define SERVER_IP "35.209.136.250"
 
 // Request/Response flags
 #define REQ_BIT 0 << 7
