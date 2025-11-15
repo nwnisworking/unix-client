@@ -9,6 +9,7 @@
 #include "socket.h"
 #include "protocol.h"
 #include "socketsignal.h"
+#include "test.h"
 
 static int fd = -1;
 
@@ -30,15 +31,6 @@ void response(Message* msg, int expect_flags);
  * Signal handler for termination signals.
  */
 void signalHandler();
-
-
-/**
- * Checks if a specific flag is set in the status byte.
- * @param status The status byte to check.
- * @param flag The flag to check for.
- * @return 1 if the flag is set, 0 otherwise.
- */
-int hasFlag(uint8_t status, uint8_t flag);
 
 int main(){
   atexit(cleanup);
@@ -124,10 +116,6 @@ void response(Message* msg, int expect_flags){
     printf("[Server]: Unexpected response from server\n");
     exit(EXIT_FAILURE);
   }
-}
-
-int hasFlag(uint8_t status, uint8_t flag){
-  return (status & flag) == flag;
 }
 
 void signalHandler(){
