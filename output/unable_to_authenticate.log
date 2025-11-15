@@ -1,0 +1,6 @@
+Script started on 2025-11-15 09:34:47+08:00 [TERM="xterm" TTY="/dev/pts/13" COLUMNS="76" LINES="41"]
+# ./unable_to_authenticate
+[Assertion passed]: Sent authentication failure message for unable_to_authenticate.c
+# exit
+
+Script done on 2025-11-15 09:35:06+08:00 [COMMAND_EXIT_CODE="0"]

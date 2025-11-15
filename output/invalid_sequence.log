@@ -1,0 +1,8 @@
+Script started on 2025-11-15 09:32:58+08:00 [TERM="xterm" TTY="/dev/pts/13" COLUMNS="76" LINES="41"]
+# ./invalid_sequence
+Status: 0x01, Length: 4, Data: 'test'
+Flags set: REQ_BIT OK_BIT NAME
+[Assertion passed]: Sent response after invalid sequence for invalid_sequence.c
+# exit
+
+Script done on 2025-11-15 09:33:12+08:00 [COMMAND_EXIT_CODE="0"]

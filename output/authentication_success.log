@@ -1,0 +1,6 @@
+Script started on 2025-11-15 09:30:31+08:00 [TERM="xterm" TTY="/dev/pts/13" COLUMNS="76" LINES="41"]
+# ./authentication_success
+[Assertion passed]: Sent authentication success message for authentication_success.c
+# exit
+
+Script done on 2025-11-15 09:31:06+08:00 [COMMAND_EXIT_CODE="0"]

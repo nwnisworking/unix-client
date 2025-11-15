@@ -1,0 +1,6 @@
+Script started on 2025-11-15 09:32:01+08:00 [TERM="xterm" TTY="/dev/pts/13" COLUMNS="76" LINES="41"]
+# ./close_client
+[Assertion passed]: Received close message from client for close_client.c
+# exit
+
+Script done on 2025-11-15 09:32:23+08:00 [COMMAND_EXIT_CODE="0"]
