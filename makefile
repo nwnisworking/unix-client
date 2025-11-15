@@ -13,7 +13,7 @@ TEST_DIR = tests
 TESTS = $(wildcard $(TEST_DIR)/*.c)
 
 # Targets
-TARGET = $(BIN_DIR)/server
+TARGET = $(BIN_DIR)/client
 TEST_TARGETS = $(patsubst $(TEST_DIR)/%.c,$(BIN_DIR)/%,$(TESTS))
 
 # Source and object files
